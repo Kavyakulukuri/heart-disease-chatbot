@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up - HeartCare AI</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI';
+            background: radial-gradient(circle, #1a1a2e, #0f0f1a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+        .card {
+            width: 320px;
+            padding: 30px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(15px);
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 25px;
+            border: none;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 25px;
+            background: linear-gradient(135deg,#ff00cc,#6c63ff);
+            color: white;
+            cursor: pointer;
+        }
+        a {
+            color:#aaa;
+            font-size:13px;
+            display:block;
+            margin-top:10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>Create Account</h2>
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="signup()">Sign Up</button>
+    <a href="login.html">Already have account? Login</a>
+</div>
+
+<script>
+function signup(){
+    let user = document.getElementById("username").value.trim();
+    let pass = document.getElementById("password").value.trim();
+
+    if(user === "" || pass === ""){
+        alert("Please fill all fields");
+        return;
+    }
+
+    fetch("http://localhost:5000/signup", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({username:user,password:pass})
+    })
+    .then(res => res.json().then(data => ({
+        status: res.status,
+        body: data
+    })))
+    .then(result => {
+        alert(result.body.message);
+
+        // 🔥 Save username for login autofill
+        localStorage.setItem("tempUser", user);
+
+        // ✅ Always redirect to login page
+        window.location.href = "login.html";
+    })
+    .catch(() => {
+        alert("Server error. Make sure Flask is running!");
+    });
+}
+</script>
+
+</body>
+</html>

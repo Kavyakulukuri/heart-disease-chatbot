@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HeartCare AI — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a14;--card:#16162a;--card2:#1c1c34;
+    --accent1:#7b6cff;--accent2:#ff3cac;--accent3:#00d4ff;
+    --text:#e8e6ff;--muted:#6b6a8a;
+    --border:rgba(123,108,255,0.18);--glow:rgba(123,108,255,0.25);--radius:14px;
+    --font-main:'DM Sans',sans-serif;--font-head:'Space Grotesk',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font-main);background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 80% 10%,rgba(123,108,255,0.08) 0%,transparent 60%),radial-gradient(ellipse 40% 30% at 10% 90%,rgba(255,60,172,0.06) 0%,transparent 60%);pointer-events:none;}
+
+  .box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px 36px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:20px;animation:fadeUp .4s ease;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+  .brand{font-family:var(--font-head);font-size:22px;font-weight:700;text-align:center;}
+  .brand span{background:linear-gradient(135deg,var(--accent1),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+
+  .tabs{display:flex;background:var(--card2);border-radius:10px;padding:4px;gap:4px;}
+  .tab{flex:1;padding:9px;border:none;border-radius:8px;cursor:pointer;font-family:var(--font-main);font-size:14px;font-weight:500;background:transparent;color:var(--muted);transition:all .2s;}
+  .tab.active{background:linear-gradient(135deg,var(--accent1),var(--accent2));color:white;}
+
+  label{font-size:13px;color:var(--muted);margin-bottom:4px;display:block;}
+  input{width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-family:var(--font-main);font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s;}
+  input:focus{border-color:var(--accent1);box-shadow:0 0 0 3px var(--glow);}
+  input::placeholder{color:var(--muted);}
+
+  .field{display:flex;flex-direction:column;gap:6px;}
+
+  button.submit{background:linear-gradient(135deg,var(--accent1),var(--accent2));color:white;border:none;padding:13px;border-radius:10px;cursor:pointer;font-family:var(--font-main);font-size:15px;font-weight:600;transition:opacity .2s,transform .15s;}
+  button.submit:hover{opacity:.88;transform:translateY(-1px);}
+  button.submit:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+
+  .msg{font-size:13px;text-align:center;padding:10px 14px;border-radius:8px;display:none;}
+  .msg.success{background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent3);}
+  .msg.error{background:rgba(255,60,172,0.1);border:1px solid rgba(255,60,172,0.3);color:#ff3cac;}
+  .msg.show{display:block;}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="brand">❤️ <span>HeartCare AI</span></div>
+
+  <div class="tabs">
+    <button class="tab active" id="tabLogin" onclick="switchTab('login')">Login</button>
+    <button class="tab" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+  </div>
+
+  <div class="field">
+    <label>Username</label>
+    <input type="text" id="username" placeholder="Enter username" autocomplete="username">
+  </div>
+  <div class="field">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Enter password" autocomplete="current-password">
+  </div>
+
+  <div class="msg" id="msg"></div>
+  <button class="submit" id="submitBtn" onclick="handleSubmit()">Login</button>
+</div>
+
+<script>
+  let currentTab = "login";
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById("tabLogin").classList.toggle("active", tab === "login");
+    document.getElementById("tabSignup").classList.toggle("active", tab === "signup");
+    document.getElementById("submitBtn").innerText = tab === "login" ? "Login" : "Create Account";
+    document.getElementById("username").value = "";
+    document.getElementById("password").value = "";
+    showMsg("", "");
+  }
+
+  function showMsg(text, type) {
+    const el = document.getElementById("msg");
+    el.innerText = text;
+    el.className = "msg " + (text ? type + " show" : "");
+  }
+
+  async function handleSubmit() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const btn = document.getElementById("submitBtn");
+
+    if (!username || !password) {
+      showMsg("Please enter both username and password.", "error");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = currentTab === "login" ? "Logging in…" : "Creating account…";
+    showMsg("", "");
+
+    const endpoint = currentTab === "login" ? "/login" : "/signup";
+
+    try {
+      const res  = await fetch("http://localhost:5000" + endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        if (currentTab === "login") {
+          // ✅ KEY FIX: Save username to localStorage BEFORE redirecting
+          localStorage.setItem("user", data.username || username);
+          showMsg("✅ Login successful! Redirecting…", "success");
+          setTimeout(() => { window.location.href = "index.html"; }, 800);
+        } else {
+          showMsg("✅ Account created! Please login.", "success");
+          setTimeout(() => switchTab("login"), 1200);
+        }
+      } else {
+        showMsg(data.message || "Something went wrong.", "error");
+        btn.disabled = false;
+        btn.innerText = currentTab === "login" ? "Login" : "Create Account";
+      }
+    } catch (err) {
+      showMsg("⚠️ Cannot connect to server. Is Flask running?", "error");
+      btn.disabled = false;
+      btn.innerText = currentTab === "login" ? "Login" : "Create Account";
+    }
+  }
+
+  // Allow Enter key to submit
+  document.addEventListener("keydown", e => {
+    if (e.key === "Enter") handleSubmit();
+  });
+
+  // If already logged in, skip to chat
+  if (localStorage.getItem("user")) {
+    window.location.href = "index.html";
+  }
+</script>
+</body>
+</html>
